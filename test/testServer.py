@@ -17,20 +17,12 @@ serverSocket.listen(1)
 print("Server is now listening on port: " + str(portNumber))
 
 data =""
-
 while 1:
+        #accepts client connection 
         connectionSocket, addr = serverSocket.accept()
-
         #data buffer for the server
-        dataBuffer = ""
-
-        while len(data) != 40:
-            tempBuff = connectionSocket.recv(40)
-
-            if not dataBuffer:
-                break
-
-            data += dataBuffer
+        data = connectionSocket.recv(40)
+        #prints out message
         print(data)
-
         connectionSocket.close()
+
