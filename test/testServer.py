@@ -18,11 +18,20 @@ print("Server is now listening on port: " + str(portNumber))
 
 data =""
 while 1:
-        #accepts client connection 
+        #accepts client connection
         connectionSocket, addr = serverSocket.accept()
-        #data buffer for the server
-        data = connectionSocket.recv(40)
+
+        tempBuff = ""
+        data = ""
+        while len(data) != 40:
+            #data buffer for the server
+            tempBuff = connectionSocket.recv(40)
+
+            #incase the other side has unexpectedly closed it socket
+            if not tempBuff:
+                break
+            temp = tempBuff.decode('ASCII')
+            data+=temp
         #prints out message
         print(data)
         connectionSocket.close()
-
