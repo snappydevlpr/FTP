@@ -1,4 +1,5 @@
 from socket import *
+import subprocess
 
 '''
 connectToServer(ip_address, server_port)
@@ -45,6 +46,9 @@ def cmdsConfirmation():
             if menu[cmds[0]] == 6:
                 print(helpString)
                 cmds = input("ftp>")
+            #checks if user wants to view files on the client
+            elif menu[cmds[0]] == 4:
+                print(subprocess.call(["ls", "-l"]))
             else:
                 #returns appropriate command
                 return cmds
