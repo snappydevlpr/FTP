@@ -1,18 +1,20 @@
-import socket
+from socket import *
+
 import sys
 
 #opens the socket initializer for TCP
 serverSocket = socket(AF_INET,SOCK_STREAM)
 #grabs the port from command line
-portNumber   = sys.argv
+portNumber   = int(sys.argv[1])
+print(portNumber)
 #sets the serverSocket to the Port specified from the command line
-serverSocket.bind('', portNumber)
+serverSocket.bind(('', portNumber))
 
 #socket starts listening
 serverSocket.listen(1)
 
 #prints out to let user know it is listening on a certain port
-print("Server is now listening on port: " + portNumber)
+print("Server is now listening on port: " + str(portNumber))
 
 
 
