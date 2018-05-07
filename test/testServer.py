@@ -16,7 +16,7 @@ serverSocket.listen(1)
 #prints out to let user know it is listening on a certain port
 print("Server is now listening on port: " + str(portNumber))
 
-
+data =""
 
 while 1:
         connectionSocket, addr = serverSocket.accept()
