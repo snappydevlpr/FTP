@@ -12,7 +12,6 @@ def connectToServer(ip_address, server_port):
     clientSocket.connect((serverName,serverPort))
     return clientSocket
 
-
 '''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
@@ -38,20 +37,35 @@ def cmdsConfirmation():
 
     #keeps getting the command until acceptable command
     while True:
+
         #splits the command
         cmds = cmds.split()
+
         #checks if the command is in the menu
         if cmds[0] in menu.keys():
+
             #checks if the help was entered
-            if menu[cmds[0]] == 6:
-                print(helpString)
-                cmds = input("ftp>")
-            #checks if user wants to view files on the client
-            elif menu[cmds[0]] == 4:
+            if menu[cmds[0]] == 4:
+                #prints out files on the client
                 print(subprocess.call(["ls", "-l"]))
+                # asks to re-enter command
+                cmds = input("ftp>")
+            #checks if exit command was made
+            elif menu[cmds[0]] == 5:
+                print("Connection is closing...")
+                #closes socket after sending all data
+                clientSocket.close()
+            #checks if user wants to view files on the client
+            elif menu[cmds[0]] == 6:
+                #prints out the help menu
+                print(helpString)
+                # asks to re-enter command
+                cmds = input("ftp>")
+            #if the cmd is not does not only deal with the client send the cmd
             else:
                 #returns appropriate command
                 return cmds
+
         #prints help menu
         else:
             print("Incorrect command entered! Enter help for more information.")
@@ -76,10 +90,10 @@ def sendCommand(cmds):
         # keeps sending data until it has all been sent
         bytesSent += clientSocket.send(data[bytesSent:])
 
-
 #desired server and port number
 serverName = "192.168.0.19"
 serverPort = 12000
+
 
 #connects to server
 clientSocket = connectToServer(serverName, serverPort)
@@ -89,6 +103,3 @@ cmds = cmdsConfirmation()
 
 #sends command to the server
 sendCommand(cmds)
-
-#closes socket after sending all data
-clientSocket.close()

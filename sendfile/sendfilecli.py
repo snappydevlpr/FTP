@@ -47,7 +47,6 @@ while True:
 	# Make sure we did not hit EOF
 	if fileData:
 
-
 		# Get the size of the data read
 		# and convert it to string
 		dataSizeStr = str(len(fileData))
