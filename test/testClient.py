@@ -91,15 +91,15 @@ def sendCommand(cmds):
         bytesSent += clientSocket.send(data[bytesSent:])
 
 #desired server and port number
-serverName = "192.168.0.19"
+serverName = "192.168.1.39"
 serverPort = 12000
 
 
 #connects to server
 clientSocket = connectToServer(serverName, serverPort)
+while 1:
+    #gets the command entered by the user
+    cmds = cmdsConfirmation()
 
-#gets the command entered by the user
-cmds = cmdsConfirmation()
-
-#sends command to the server
-sendCommand(cmds)
+    #sends command to the server
+    sendCommand(cmds)
