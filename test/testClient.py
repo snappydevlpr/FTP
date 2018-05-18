@@ -13,6 +13,106 @@ def connectToServer(ip_address, server_port):
     return clientSocket
 
 '''
+recvAll(sock, numBytes)
+    PARAM:  sock socket to receive from
+    PARAM:  numBytes number of bytes to receive
+    USE:    This function gets an amount of data from the socket
+'''    
+def recvAll(sock, numBytes):
+    recvBuff = ""
+    tmpBuff = ""
+    
+    while len(recvBuff) < numBytes:
+        
+        tmpBuff =  sock.recv(numBytes)
+        
+        if not tmpBuff:
+            break
+        
+        recvBuff += tmpBuff
+    
+    return recvBuff   
+    
+'''
+uploadToServer(fileName)
+    PARAM:  fileName name of the file to save
+    RETURN: Number of bytes sent
+    USE:    This function uploads a file to the server
+'''
+def uploadToServer(fileName):
+    # We need to create a separate data connection
+    # TODO get the ephemeral port number from the server
+    ephemeralPort = -1
+    serverName = sys.argv[1]
+    dataSocket = connectToServer(serverName, ephemeralPort)
+    
+    # Get the file object and stuff
+    fileObj = open(fileName, "r")
+    fileData = None
+    bytesSent = 0
+    
+    while True:
+        
+        # Read 65536 bytes of data
+        fileData = fileObj.read(65536)
+        
+        # Make sure we did not hit EOF
+        if fileData:
+                
+            # convert data to string
+            dataSizeStr = str(len(fileData))
+            
+            # Prepend 0's to the size string
+            # until the size is 10 bytes
+            while len(dataSizeStr) < 10:
+                dataSizeStr = "0" + dataSizeStr
+    
+            # Prepend the size string to the data
+            fileData = dataSizeStr + fileData    
+            
+            # Send the data
+            while len(fileData) > bytesSent:
+                bytesSent += dataSocket.send(fileData[bytesSent:])
+        
+        else:
+            break
+            
+    fileObj.close()
+    dataSocket.close()
+    return bytesSent
+    
+'''
+downloadFromServer(fileName)
+    PARAM:  fileName name of the file to save
+    RETURN: size of the file saved
+    USE:    This function downloads a file from the server and saves it to the client
+'''
+def downloadFromServer(fileName):
+    # We need to create a separate data connection
+    # TODO get the ephemeral port number from the server
+    ephemeralPort = -1
+    serverName = sys.argv[1]
+    dataSocket = connectToServer(serverName, ephemeralPort)
+    
+    # Receive the first 10 bytes indicating the
+    # size of the file
+    fileSizeBuff = recvAll(dataSocket, 10)
+        
+    # Get the file size
+    fileSize = int(fileSizeBuff)
+    
+    # Get the file data
+    fileData = recvAll(dataSocket, fileSize)
+    
+    # Write to file
+    fileObj = open(fileName, "w")
+    fileObj.write(fileData);
+    
+    fileObj.close()
+    dataSocket.close()
+    return fileSize 
+    
+'''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
 '''
@@ -44,6 +144,22 @@ def cmdsConfirmation():
         #checks if the command is in the menu
         if cmds[0] in menu.keys():
 
+            #checks if the help was entered
+            if menu[cmds[0]] == 1:
+                # downloads file from server
+                fileName = cmds[1]
+                savedFileSize = downloadFromServer(fileName)
+                print("Downloaded " + fileName + " (" + savedFileSize + " Bytes)")
+                # asks to re-enter command
+                cmds = input("ftp>")
+            #checks if the help was entered
+            if menu[cmds[0]] == 2:
+                # uploads a file to the server
+                fileName = cmds[1]
+                uploadedFileSize = uploadToServer(fileName)
+                print("Uploaded " + fileName + " (" + uploadedFileSize + " Bytes)")
+                # asks to re-enter command
+                cmds = input("ftp>")
             #checks if the help was entered
             if menu[cmds[0]] == 4:
                 #prints out files on the client
@@ -90,48 +206,11 @@ def sendCommand(cmds):
         # keeps sending data until it has all been sent
         bytesSent += clientSocket.send(data[bytesSent:])
 
-'''
-
-'''
-def putFileOnToServer(fileName, portNumber, hostName):
-    #desired server and port number
-    serverName = hostName
-    serverPort = portNumber
-    #desired file object
-    fileObj    = open(fileName, "r")
-    #connection setup
-    dataSocket = socket(AF_INET,SOCK_STREAM)
-    dataSocket.connect((serverName,serverPort))
-
-    #number of bytes sent
-    numByteSent = 0
-    #file data
-    fileData = None
-
-    while True:
-        #Read bytes of data
-        fileData = fileObj.read()
-        #makes sure it doesnt hit EOF
-        if fileData:
-            #gets the size of the data being read in
-            dataSize = str(len(fileData))
-            # add 0s to the front until there are ten bytes
-            while len(dataSize) < 10:
-                dataSize = "0"+dataSize
-            #prepend the size of the data to the file
-            fileData = dataSize + fileData
-            #number of bytes sent
-            numSent = 0
-            #bytes sent
-            while len(fileData) > numSent:
-                numSent += dataSocket.send(fileData[numSent:])
-        #file has been read
-        else:
-            break
-    print("Sent " , numSent, "bytes to server.")
-    #closing connection and file
-    dataSocket.close()
-    fileObj.close()
+#desired server and port number
+#serverName = "192.168.1.39"
+#serverPort = 12000
+serverName = sys.argv[1]
+serverPort = int(sys.argv[2])
 
 
 #connects to server
