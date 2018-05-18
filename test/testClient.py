@@ -90,9 +90,48 @@ def sendCommand(cmds):
         # keeps sending data until it has all been sent
         bytesSent += clientSocket.send(data[bytesSent:])
 
-#desired server and port number
-serverName = "192.168.1.39"
-serverPort = 12000
+'''
+
+'''
+def putFileOnToServer(fileName, portNumber, hostName):
+    #desired server and port number
+    serverName = hostName
+    serverPort = portNumber
+    #desired file object
+    fileObj    = open(fileName, "r")
+    #connection setup
+    dataSocket = socket(AF_INET,SOCK_STREAM)
+    dataSocket.connect((serverName,serverPort))
+
+    #number of bytes sent
+    numByteSent = 0
+    #file data
+    fileData = None
+
+    while True:
+        #Read bytes of data
+        fileData = fileObj.read()
+        #makes sure it doesnt hit EOF
+        if fileData:
+            #gets the size of the data being read in
+            dataSize = str(len(fileData))
+            # add 0s to the front until there are ten bytes
+            while len(dataSize) < 10:
+                dataSize = "0"+dataSize
+            #prepend the size of the data to the file
+            fileData = dataSize + fileData
+            #number of bytes sent
+            numSent = 0
+            #bytes sent
+            while len(fileData) > numSent:
+                numSent += dataSocket.send(fileData[numSent:])
+        #file has been read
+        else:
+            break
+    print("Sent " , numSent, "bytes to server.")
+    #closing connection and file
+    dataSocket.close()
+    fileObj.close()
 
 
 #connects to server

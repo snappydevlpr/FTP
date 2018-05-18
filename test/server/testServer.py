@@ -14,7 +14,7 @@ def initializeSocket():
     #sets the serverSocket to the Port specified from the command line
     serverSocket.bind(('', portNumber))
     #socket starts listening
-    serverSocket.listen(2)
+    serverSocket.listen(1)
     #prints out to let user know it is listening on a certain port
     print("Server is now listening on port: " + str(portNumber))
 
@@ -49,6 +49,20 @@ def commands(cmds):
 def getFile(fileName):
     return
 
+'''
+ephemeral()
+    Purpose: Sets up temporary port for data transfer use
+'''
+def ephemeral():
+    dataSocket = socket(AF_INET,SOCK_STREAM)
+    dataSocket.bind(('',0))
+    return dataSocket
+
+
+'''
+putFile(fileName)
+    PARAM:  name of file
+'''
 def putFile(fileName):
     return
 
@@ -66,16 +80,21 @@ while 1:
         # initializer the temporary buff
         tempBuff = ""
         data = ""
+
         #gets data of length 40
         while len(data) != 40:
+
             #data buffer for the server
             tempBuff = connectionSocket.recv(40)
+
             #incase the other side has unexpectedly closed it socket
             if not tempBuff:
                 break
+
             #decodes the message the client sent
             temp = tempBuff.decode('ASCII')
             data+=temp
+
             #prints out message
             if data != '':
                 commands(''.join(data))
