@@ -31,7 +31,7 @@ def recvAll(sock, numBytes):
         
         recvBuff += tmpBuff
     
-    return recvBuff   
+    return recvBuff
     
 '''
 uploadToServer(fileName)
@@ -41,8 +41,8 @@ uploadToServer(fileName)
 '''
 def uploadToServer(fileName):
     # We need to create a separate data connection
-    # TODO get the ephemeral port number from the server
-    ephemeralPort = -1
+    sendCommand("Ephemeral")
+    ephemeralPort = int(recvAll(clientSocket, 2));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
     
@@ -89,8 +89,8 @@ downloadFromServer(fileName)
 '''
 def downloadFromServer(fileName):
     # We need to create a separate data connection
-    # TODO get the ephemeral port number from the server
-    ephemeralPort = -1
+    sendCommand("Ephemeral")
+    ephemeralPort = int(recvAll(clientSocket, 2));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
     
@@ -111,7 +111,33 @@ def downloadFromServer(fileName):
     fileObj.close()
     dataSocket.close()
     return fileSize 
+  
+'''
+receiveServerLsOutput()
+    RETURN: the string output of the server's ls command
+    USE:    This function receives the output from the
+            server side ls command
+'''    
+def receiveServerLsOutput():
+    # We need to create a separate data connection
+    # The ls command sent to the server should send the client the eph port
+    # in order to get the output from the dataSocket
+    ephemeralPort = int(recvAll(clientSocket, 2));
+    serverName = sys.argv[1]
+    dataSocket = connectToServer(serverName, ephemeralPort)
     
+    # Receive the first 10 bytes indicating the
+    # size of the file
+    fileSizeBuff = recvAll(dataSocket, 10)
+        
+    # Get the file size
+    fileSize = int(fileSizeBuff)
+    
+    # Get the file data
+    fileData = recvAll(dataSocket, fileSize)
+    
+    return str(fileData, 'utf-8')
+  
 '''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
@@ -161,6 +187,14 @@ def cmdsConfirmation():
                 # asks to re-enter command
                 cmds = input("ftp>")
             #checks if the help was entered
+            if menu[cmds[0]] == 3:
+                # send ls command to server
+                sendCommand(cmds)
+                output = receiveServerLsOutput()
+                print(output)
+                # asks to re-enter command
+                cmds = input("ftp>")
+            #checks if the help was entered
             if menu[cmds[0]] == 4:
                 #prints out files on the client
                 print(subprocess.call(["ls", "-l"]))
@@ -177,10 +211,6 @@ def cmdsConfirmation():
                 print(helpString)
                 # asks to re-enter command
                 cmds = input("ftp>")
-            #if the cmd is not does not only deal with the client send the cmd
-            else:
-                #returns appropriate command
-                return cmds
 
         #prints help menu
         else:
@@ -212,12 +242,12 @@ def sendCommand(cmds):
 serverName = sys.argv[1]
 serverPort = int(sys.argv[2])
 
-
 #connects to server
 clientSocket = connectToServer(serverName, serverPort)
+# listen for responses like ephemeral port
+clientSocket.listen(1)
+
 while 1:
     #gets the command entered by the user
-    cmds = cmdsConfirmation()
-
-    #sends command to the server
-    sendCommand(cmds)
+    cmdsConfirmation()
+    
