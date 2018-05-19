@@ -33,9 +33,7 @@ def ephemeral(connectionSocket):
     #socket starts listening
     dataSocket.listen(2)
     #accepts incoming client
-    print("hello")
     dataPortNumber = str(dataSocket.getsockname()[1])
-    print("bye")
     # makes the port length 10
     while len(dataPortNumber) < 10:
         dataPortNumber = '0' + dataPortNumber
@@ -240,3 +238,5 @@ while 1:
             #prints out message
             if data != '':
                 commands(data,connectionSocket)
+
+            data = ''
