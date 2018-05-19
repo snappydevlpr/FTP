@@ -35,82 +35,6 @@ def recvAll(sock, numBytes):
 
     return recvBuff
 
-'''
-uploadToServer(fileName)
-    PARAM:  fileName name of the file to save
-    RETURN: Number of bytes sent
-    USE:    This function uploads a file to the server
-'''
-def uploadToServer(fileName):
-    # We need to create a separate data connection
-    ephemeralPort = int(recvAll(clientSocket, 10));
-    serverName = sys.argv[1]
-    dataSocket = connectToServer(serverName, ephemeralPort)
-
-    # Get the file object and stuff
-    fileObj = open(fileName, "r")
-    fileData = None
-    bytesSent = 0
-
-    while True:
-
-        # Read 65536 bytes of data
-        fileData = fileObj.read(65536)
-
-        # Make sure we did not hit EOF
-        if fileData:
-
-            # convert data to string
-            dataSizeStr = str(len(fileData))
-
-            # Prepend 0's to the size string
-            # until the size is 10 bytes
-            while len(dataSizeStr) < 10:
-                dataSizeStr = "0" + dataSizeStr
-
-            # Prepend the size string to the data
-            fileData = dataSizeStr + fileData
-
-            # Send the data
-            while len(fileData) > bytesSent:
-                bytesSent += dataSocket.send(fileData[bytesSent:])
-
-        else:
-            break
-
-    fileObj.close()
-    dataSocket.close()
-    return bytesSent
-
-'''
-downloadFromServer(fileName)
-    PARAM:  fileName name of the file to save
-    RETURN: size of the file saved
-    USE:    This function downloads a file from the server and saves it to the client
-'''
-def downloadFromServer(fileName):
-    # We need to create a separate data connection
-    ephemeralPort = int(recvAll(clientSocket, 10));
-    serverName = sys.argv[1]
-    dataSocket = connectToServer(serverName, ephemeralPort)
-
-    # Receive the first 10 bytes indicating the
-    # size of the file
-    fileSizeBuff = recvAll(dataSocket, 10)
-
-    # Get the file size
-    fileSize = int(fileSizeBuff)
-
-    # Get the file data
-    fileData = recvAll(dataSocket, fileSize)
-
-    # Write to file
-    fileObj = open(fileName, "w")
-    fileObj.write(fileData);
-
-    fileObj.close()
-    dataSocket.close()
-    return fileSize
 
 '''
 receiveServerLsOutput()
@@ -186,17 +110,48 @@ def cmdsConfirmation(clientSocket):
                 fileData = recvAll(dataSocket, fileSize)
 
                 # Write to file
-                fileName = cmds[1]
+                fileName = cmds.split(' ')[1]
                 fileObj = open(fileName, "w")
                 fileObj.write(fileData);
 
                 fileObj.close()
                 dataSocket.close()
-                return fileSize
-            #checks if the help was entered
+
+            # uploads a file to the server
             elif menu[cmds[0]] == 2:
-                # uploads a file to the server
-                cmds = ''.join(cmds)
+                # Send command to server
+                cmds = ' '.join(cmds)
+                sendCommand(clientSocket,cmds)
+
+                # Create temporary dataSocket
+                dataPortNumber = recvAll(clientSocket,10)
+                dataSocket = socket(AF_INET,SOCK_STREAM)
+                client_IP, client_Port = clientSocket.getsockname()
+                dataSocket.connect((client_IP,int(dataPortNumber)))
+
+                # Send file to server
+                fileName = cmds.split(' ')[1]
+                file = open(fileName, "r")
+                fileData = None
+                bytesSent = 0
+
+                while True:
+                    fileData = file.read(65536)
+                    if fileData:
+                            dataSize = str(len(fileData))
+                            while len(dataSize) < 10:
+                                dataSize = "0" + dataSize
+
+                            fileData = dataSize + fileData
+                            fileData = fileData.encode('ASCII')
+
+                            while len(fileData) > bytesSent:
+                                bytesSent += dataSocket.send(fileData[bytesSent:])
+                    else:
+                        break
+
+                file.close()
+                dataSocket.close()
 
             #checks if the help was entered
             elif menu[cmds[0]] == 3:

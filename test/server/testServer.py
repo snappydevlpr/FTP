@@ -33,9 +33,7 @@ def ephemeral(connectionSocket):
     #socket starts listening
     dataSocket.listen(2)
     #accepts incoming client
-    print("hello")
     dataPortNumber = str(dataSocket.getsockname()[1])
-    print("bye")
     # makes the port length 10
     while len(dataPortNumber) < 10:
         dataPortNumber = '0' + dataPortNumber
@@ -122,19 +120,20 @@ def getFile(fileName,serverSocket):
 putFile(fileName)
     PARAM:  name of file
 '''
-def putFile(fileName):
+def putFile(fileName, serverSocket):
     # create ephemeral port and send the port number to the client
     dataSocket = ephemeral(serverSocket)
+    dataConSocket, addr = dataSocket.accept()
 
     # Receive the first 10 bytes indicating the
     # size of the file
-    fileSizeBuff = recvAll(dataSocket, 10)
+    fileSizeBuff = recvAll(dataConSocket, 10)
 
     # Get the file size
     fileSize = int(fileSizeBuff)
 
     # Get the file data
-    fileData = recvAll(dataSocket, fileSize)
+    fileData = recvAll(dataConSocket, fileSize)
 
     # Write to file
     fileObj = open(fileName, "w")
@@ -178,7 +177,7 @@ def commands(cmds,serverSocket):
         getFile(cmds[1],serverSocket)
     #if the server is receiving a file run putFile
     elif menu[cmds[0]] == 2:
-        putFile(cmds[1])
+        putFile(cmds[1],serverSocket)
     #if client wants to know files on the server
     elif menu[cmds[0]] == 3:
         #gets the ls command info
@@ -239,3 +238,5 @@ while 1:
             #prints out message
             if data != '':
                 commands(data,connectionSocket)
+
+            data = ''
