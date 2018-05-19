@@ -12,8 +12,8 @@ Curtis Laudenslayer: claudenslayer@csu.fullerton.edu <br/>
 Python was used for the implementation of this project
 
 # How to Execute Program
-Open two terminal windows, one for client and one for server.<br/>
-In one window, type ``` python3 testClient.py <hostname> <port number> ```
+Open two terminal windows, one for client and one for server. <br/>
+In one window, type ``` python3 testClient.py <hostname> <port number> ``` <br/>
 In the other window, type ``` python3 testServer.py <port number> ```
 
 ## Commands
