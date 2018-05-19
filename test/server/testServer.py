@@ -2,59 +2,6 @@ from socket import *
 import subprocess
 import sys
 
-'''
-initializeSocket()
-    USE:    This function initializes the socket connection
-'''
-def initializeSocket():
-    #opens the socket initializer for TCP
-    serverSocket = socket(AF_INET,SOCK_STREAM)
-    #grabs the port from command line
-    portNumber   = int(sys.argv[1])
-    #sets the serverSocket to the Port specified from the command line
-    serverSocket.bind(('', portNumber))
-    #socket starts listening
-    serverSocket.listen(1)
-    #prints out to let user know it is listening on a certain port
-    print("Server is now listening on port: " + str(portNumber))
-
-    return serverSocket
-
-'''
-commands(cmds)
-    PARAM:  Takes in user's commands
-    USE:    This function takes in user commands and
-            decides which functions to call based on the command
-'''
-def commands(cmds,connectionSocket):
-    #splits commands into a list
-    cmds = cmds.split()
-    menu = {"get":1,
-            "put":2,
-            "ls":3,
-            "lls":4,
-            "quit":5}
-
-    #checks if it is a get file if so run get file
-    if menu[cmds[0]] == 1:
-        getFile(cmds[1])
-    #if the server is receiving a file run putFile
-    elif menu[cmds[0]] == 2:
-        putFile(cmds[1])
-    #if client wants to know files on the server
-    elif menu[cmds[0]] == 3:
-        data = str(subprocess.check_output(["ls", "-l"]))
-        print(len(data))
-
-        # #Python 3.6 requires byte-object so message needs to be encoded
-        # data = data.encode('ASCII')
-        #
-        # #Send the port number to the client over control connection
-        # bytesSent = 0
-        # #makes sure that the bits sent is less than the data message
-        # while bytesSent != len(data):
-        #     # keeps sending data until it has all been sent
-        #     bytesSent += clientSocket.send(data[bytesSent:])
 
 
 '''
@@ -78,6 +25,25 @@ def recvAll(sock, numBytes):
 
     return recvBuff
 
+'''
+ephemeral()
+    Purpose: Sets up temporary port for data transfer use
+'''
+def ephemeral(connectionSocket):
+
+    #create the ephemeral port
+    dataSocket = socket(AF_INET,SOCK_STREAM)
+    dataSocket.bind(('',0))
+
+    dataPortNumber = dataSocketgetsockname()[1]
+
+    #Send the port number to the client over control connection
+    bytesSent = 0
+    while bytesSent != 2:
+        # keeps sending data until it has all been sent
+        bytesSent += connectionSocket.send(dataPortNumber[bytesSent:])
+
+    return dataSocket
 
 '''
 getFile()
@@ -104,26 +70,6 @@ def getFile(fileName):
     fileObj.close()
     dataSocket.close()
     return fileSize
-
-'''
-ephemeral()
-    Purpose: Sets up temporary port for data transfer use
-'''
-def ephemeral(connectionSocket):
-
-    #create the ephemeral port
-    dataSocket = socket(AF_INET,SOCK_STREAM)
-    dataSocket.bind(('',0))
-
-    dataPortNumber = dataSocketgetsockname()[1]
-
-    #Send the port number to the client over control connection
-    bytesSent = 0
-    while bytesSent != 2:
-        # keeps sending data until it has all been sent
-        bytesSent += connectionSocket.send(dataPortNumber[bytesSent:])
-
-    return dataSocket
 
 '''
 putFile(fileName)
@@ -168,8 +114,70 @@ def putFile(fileName):
     dataSocket.close()
     return bytesSent
 
+'''
+commands(cmds)
+    PARAM:  Takes in user's commands
+    USE:    This function takes in user commands and
+            decides which functions to call based on the command
+'''
+def commands(cmds,connectionSocket):
+    #splits commands into a list
+    cmds = cmds.split()
+    menu = {"get":1,
+            "put":2,
+            "ls":3,
+            "lls":4,
+            "quit":5}
 
+    #checks if it is a get file if so run get file
+    if menu[cmds[0]] == 1:
+        getFile(cmds[1])
+    #if the server is receiving a file run putFile
+    elif menu[cmds[0]] == 2:
+        putFile(cmds[1])
+    #if client wants to know files on the server
+    elif menu[cmds[0]] == 3:
+        data = str(subprocess.check_output(["ls", "-l"]))
+        dataSize = str(len(data))
 
+        while len(dataSize) < 10:
+            dataSize = '0' + dataSize
+
+        # #Send the port number to the client over control connection
+        # bytesSent = 0
+        # dataSize = dataSize.encode('ASCII')
+        # #makes sure that the bits sent is less than the data message
+        # while bytesSent != len(data):
+        #     # keeps sending data until it has all been sent
+        #     bytesSent += connectionSocket.send(dataSize[bytesSent:])
+
+        #Python 3.6 requires byte-object so message needs to be encoded
+        data = data.encode('ASCII')
+
+        #Send the port number to the client over control connection
+        bytesSent = 0
+        #makes sure that the bits sent is less than the data message
+        while bytesSent != len(data):
+            # keeps sending data until it has all been sent
+            bytesSent += connectionSocket.send(data[bytesSent:])
+
+'''
+initializeSocket()
+    USE:    This function initializes the socket connection
+'''
+def initializeSocket():
+    #opens the socket initializer for TCP
+    serverSocket = socket(AF_INET,SOCK_STREAM)
+    #grabs the port from command line
+    portNumber   = int(sys.argv[1])
+    #sets the serverSocket to the Port specified from the command line
+    serverSocket.bind(('', portNumber))
+    #socket starts listening
+    serverSocket.listen(1)
+    #prints out to let user know it is listening on a certain port
+    print("Server is now listening on port: " + str(portNumber))
+
+    return serverSocket
 
 #control Connection
 serverSocket = initializeSocket()

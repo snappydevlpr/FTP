@@ -22,16 +22,17 @@ def recvAll(sock, numBytes):
     recvBuff = ""
     tmpBuff = ""
 
-    while len(recvBuff) < numBytes:
-
+    while len(recvBuff) != numBytes:
         tmpBuff =  sock.recv(numBytes)
 
         if not tmpBuff:
             break
-
-        recvBuff += tmpBuff
+        #decodes the message the client sent
+        temp = tmpBuff.decode('ASCII')
+        recvBuff += temp
 
     return recvBuff
+
 
 '''
 uploadToServer(fileName)
@@ -136,11 +137,12 @@ def receiveServerLsOutput():
 
     return str(fileData, 'utf-8')
 
+
 '''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
 '''
-def cmdsConfirmation():
+def cmdsConfirmation(clientSocket):
     #menu dictionary
     menu = {"get":1,
             "put":2,
@@ -189,6 +191,10 @@ def cmdsConfirmation():
                 sendCommand(cmds)
                 #output = receiveServerLsOutput()
                 #print(output)
+
+                #receive ephemeralPort
+                #size = recvAll(clientSocket,10)
+                print(recvAll(clientSocket, 7000))
 
             #checks if the help was entered
             if menu[cmds[0]] == 4:
@@ -240,4 +246,4 @@ clientSocket = connectToServer(serverName, serverPort)
 
 while 1:
     #gets the command entered by the user
-    cmdsConfirmation()
+    cmdsConfirmation(clientSocket)
