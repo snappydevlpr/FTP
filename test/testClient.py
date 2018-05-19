@@ -110,12 +110,13 @@ def cmdsConfirmation(clientSocket):
                 fileData = recvAll(dataSocket, fileSize)
 
                 # Write to file
-                fileObj = open("output.txt", "w")
+                fileName = cmds.split(' ')[1]
+                fileObj = open(fileName, "w")
                 fileObj.write(fileData);
 
                 fileObj.close()
                 dataSocket.close()
-                return fileSize
+
             # uploads a file to the server
             elif menu[cmds[0]] == 2:
                 # Send command to server
@@ -124,20 +125,18 @@ def cmdsConfirmation(clientSocket):
 
                 # Create temporary dataSocket
                 dataPortNumber = recvAll(clientSocket,10)
-
                 dataSocket = socket(AF_INET,SOCK_STREAM)
                 client_IP, client_Port = clientSocket.getsockname()
                 dataSocket.connect((client_IP,int(dataPortNumber)))
-                print("Now connected on temp port: ",int(dataPortNumber))
 
                 # Send file to server
-                file = open("test.txt", "r")
+                fileName = cmds.split(' ')[1]
+                file = open(fileName, "r")
                 fileData = None
                 bytesSent = 0
 
                 while True:
                     fileData = file.read(65536)
-
                     if fileData:
                             dataSize = str(len(fileData))
                             while len(dataSize) < 10:
@@ -148,7 +147,6 @@ def cmdsConfirmation(clientSocket):
 
                             while len(fileData) > bytesSent:
                                 bytesSent += dataSocket.send(fileData[bytesSent:])
-
                     else:
                         break
 
