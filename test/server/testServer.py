@@ -25,24 +25,29 @@ ephemeral()
     Purpose: Sets up temporary port for data transfer use
 '''
 def ephemeral(connectionSocket):
-
     #create the ephemeral port
+
     dataSocket = socket(AF_INET,SOCK_STREAM)
-    dataSocket.bind(('',0))
+    client_IP, client_Port = connectionSocket.getsockname()
+    dataSocket.bind((client_IP,0))
     #socket starts listening
-    dataSocket.listen(1)
+    dataSocket.listen(2)
+    #accepts incoming client
+    print("hello")
     dataPortNumber = str(dataSocket.getsockname()[1])
+    print("bye")
     # makes the port length 10
     while len(dataPortNumber) < 10:
         dataPortNumber = '0' + dataPortNumber
-    print("1A")
+
     dataPortNumber = dataPortNumber.encode('ASCII')
     #Send the port number to the client over control connection
     bytesSent = 0
+
     while bytesSent != 10:
         # keeps sending data until it has all been sent
         bytesSent += connectionSocket.send(dataPortNumber[bytesSent:])
-    print(dataPortNumber)
+
     return dataSocket
 
 '''
@@ -69,11 +74,56 @@ def recvAll(sock, numBytes):
 
 '''
 getFile()
-    Purpose:
+    Purpose:Sends file to the client
 '''
-def getFile(fileName):
+def getFile(fileName,serverSocket):
     # create ephemeral port and send the port number to the client
-    dataSocket = ephemeral()
+    dataSocket = ephemeral(serverSocket)
+    dataConSocket, addr = dataSocket.accept()
+
+    # # Get the file object and stuff
+    # fileObj = open(fileName, "r")
+    # fileData = None
+    # bytesSent = 0
+    #
+    # while True:
+    #
+    #     # Read 65536 bytes of data
+    #     fileData = fileObj.read(65536)
+    #
+    #     # Make sure we did not hit EOF
+    #     if fileData:
+    #
+    #         # convert data to string
+    #         dataSizeStr = str(len(fileData))
+    #
+    #         # Prepend 0's to the size string
+    #         # until the size is 10 bytes
+    #         while len(dataSizeStr) < 10:
+    #             dataSizeStr = "0" + dataSizeStr
+    #
+    #         # Prepend the size string to the data
+    #         fileData = dataSizeStr + fileData
+    #
+    #         # Send the data
+    #         while len(fileData) > bytesSent:
+    #             bytesSent += dataSocket.send(fileData[bytesSent:])
+    #
+    #     else:
+    #         break
+    #
+    # fileObj.close()
+    # dataSocket.close()
+    # return bytesSent
+
+
+'''
+putFile(fileName)
+    PARAM:  name of file
+'''
+def putFile(fileName):
+    # create ephemeral port and send the port number to the client
+    dataSocket = ephemeral(serverSocket)
 
     # Receive the first 10 bytes indicating the
     # size of the file
@@ -92,49 +142,6 @@ def getFile(fileName):
     fileObj.close()
     dataSocket.close()
     return fileSize
-
-'''
-putFile(fileName)
-    PARAM:  name of file
-'''
-def putFile(fileName):
-    # create ephemeral port and send the port number to the client
-    dataSocket = ephemeral()
-
-    # Get the file object and stuff
-    fileObj = open(fileName, "r")
-    fileData = None
-    bytesSent = 0
-
-    while True:
-
-        # Read 65536 bytes of data
-        fileData = fileObj.read(65536)
-
-        # Make sure we did not hit EOF
-        if fileData:
-
-            # convert data to string
-            dataSizeStr = str(len(fileData))
-
-            # Prepend 0's to the size string
-            # until the size is 10 bytes
-            while len(dataSizeStr) < 10:
-                dataSizeStr = "0" + dataSizeStr
-
-            # Prepend the size string to the data
-            fileData = dataSizeStr + fileData
-
-            # Send the data
-            while len(fileData) > bytesSent:
-                bytesSent += dataSocket.send(fileData[bytesSent:])
-
-        else:
-            break
-
-    fileObj.close()
-    dataSocket.close()
-    return bytesSent
 
 '''
 sendCommand(cmds)
@@ -160,12 +167,14 @@ commands(cmds)
 '''
 def commands(cmds,serverSocket):
     #splits commands into a list
-    cmds = cmds.split()
+    cmds = cmds.split(' ')
     menu = {"get":1,"put":2,"ls":3,"lls":4,"quit":5}
-
+    if cmds[0] in menu.keys():
+        print("Success")
     #checks if it is a get file if so run get file
     if menu[cmds[0]] == 1:
-        getFile(cmds[1])
+        print(cmds[1])
+        getFile(cmds[1],serverSocket)
     #if the server is receiving a file run putFile
     elif menu[cmds[0]] == 2:
         putFile(cmds[1])
@@ -228,4 +237,4 @@ while 1:
 
             #prints out message
             if data != '':
-                commands(''.join(data),connectionSocket)
+                commands(data,connectionSocket)

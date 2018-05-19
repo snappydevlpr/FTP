@@ -1,6 +1,7 @@
 from socket import *
 import subprocess
 import sys
+from time import sleep
 
 '''
 connectToServer(ip_address, server_port)
@@ -165,8 +166,15 @@ def cmdsConfirmation(clientSocket):
             #checks if the help was entered
             if menu[cmds[0]] == 1:
                 # downloads file from server
-                cmds = ''.join(cmds)
-
+                cmds = ' '.join(cmds)
+                sendCommand(clientSocket,cmds)
+                #receives the port number
+                dataPortNumber = recvAll(clientSocket,10)
+                #connects to temp socket
+                dataSocket = socket(AF_INET,SOCK_STREAM)
+                client_IP, client_Port = clientSocket.getsockname()
+                dataSocket.connect((client_IP,int(dataPortNumber)))
+                print("connected")
             #checks if the help was entered
             elif menu[cmds[0]] == 2:
                 # uploads a file to the server
@@ -221,7 +229,6 @@ serverPort = int(sys.argv[2])
 
 #connects to server
 clientSocket = connectToServer(serverName, serverPort)
-# listen for responses like ephemeral port
 
 while 1:
     #gets the command entered by the user
