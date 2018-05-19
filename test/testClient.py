@@ -46,7 +46,7 @@ def receiveServerLsOutput():
     # We need to create a separate data connection
     # The ls command sent to the server should send the client the eph port
     # in order to get the output from the dataSocket
-    ephemeralPort = int(recvAll(clientSocket, 2));
+    ephemeralPort = int(recvAll(clientSocket, 10));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
 
