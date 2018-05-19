@@ -1,6 +1,7 @@
 from socket import *
 import subprocess
 import sys
+
 '''
 connectToServer(ip_address, server_port)
     PARAM:  ip_address of the server,
@@ -32,7 +33,6 @@ def recvAll(sock, numBytes):
         recvBuff += temp
 
     return recvBuff
-
 
 '''
 uploadToServer(fileName)
@@ -137,19 +137,13 @@ def receiveServerLsOutput():
 
     return str(fileData, 'utf-8')
 
-
 '''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
 '''
 def cmdsConfirmation(clientSocket):
     #menu dictionary
-    menu = {"get":1,
-            "put":2,
-            "ls":3,
-            "lls":4,
-            "quit":5,
-            "help":6}
+    menu = {"get":1,"put":2,"ls":3,"lls":4,"quit":5}
 
     #help menu
     helpString = ("\nftp> get <file name> (downloads file <file name> from the server)\n"
@@ -166,49 +160,39 @@ def cmdsConfirmation(clientSocket):
 
         #splits the command
         cmds = cmds.split()
-
         #checks if the command is in the menu
         if cmds[0] in menu.keys():
             #checks if the help was entered
             if menu[cmds[0]] == 1:
                 # downloads file from server
-                sendCommand(cmds)
-                fileName = cmds[1]
-                savedFileSize = downloadFromServer(fileName)
-                print("Downloaded " + fileName + " (" + savedFileSize + " Bytes)")
+                cmds = ''.join(cmds)
 
             #checks if the help was entered
-            if menu[cmds[0]] == 2:
+            elif menu[cmds[0]] == 2:
                 # uploads a file to the server
-                sendCommand(cmds)
-                fileName = cmds[1]
-                uploadedFileSize = uploadToServer(fileName)
-                print("Uploaded " + fileName + " (" + uploadedFileSize + " Bytes)")
+                cmds = ''.join(cmds)
 
             #checks if the help was entered
-            if menu[cmds[0]] == 3:
+            elif menu[cmds[0]] == 3:
                 # send ls command to server
-                sendCommand(cmds)
-                #output = receiveServerLsOutput()
-                #print(output)
-
-                #receive ephemeralPort
-                #size = recvAll(clientSocket,10)
-                print(recvAll(clientSocket, 7000))
+                cmds = ''.join(cmds)
+                sendCommand(clientSocket,cmds)
+                dataSize = recvAll(clientSocket,10)
+                confirm = "y"
+                sendCommand(clientSocket,confirm)
+                print(recvAll(clientSocket,int(dataSize)))
 
             #checks if the help was entered
-            if menu[cmds[0]] == 4:
+            elif menu[cmds[0]] == 4:
                 #prints out files on the client
-                print(subprocess.call(["ls", "-l"]))
+                print(str(subprocess.check_output(["ls", "-l"]), 'utf-8'))
+
             #checks if exit command was made
             elif menu[cmds[0]] == 5:
                 print("Connection is closing...")
                 #closes socket after sending all data
                 clientSocket.close()
-            #checks if user wants to view files on the client
-            elif menu[cmds[0]] == 6:
-                #prints out the help menu
-                print(helpString)
+
 
         #prints help menu
         else:
@@ -219,20 +203,15 @@ def cmdsConfirmation(clientSocket):
 sendCommand(cmds)
     USE:    This function sends a given command message to the server
 '''
-def sendCommand(cmds):
-    #data to send
-    data = ''.join(cmds)
-
+def sendCommand(sock, data):
     #Python 3.6 requires byte-object so message needs to be encoded
     data = data.encode('ASCII')
-
     #number of bits sent
     bytesSent = 0
-
     #makes sure that the bits sent is less than the data message
     while bytesSent != len(data):
         # keeps sending data until it has all been sent
-        bytesSent += clientSocket.send(data[bytesSent:])
+        bytesSent += sock.send(data[bytesSent:])
 
 #desired server and port number
 #serverName = "192.168.1.39"
