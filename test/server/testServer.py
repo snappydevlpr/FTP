@@ -45,17 +45,72 @@ def commands(cmds):
     elif menu[cmds[0]] == 3:
         print(subprocess.call(["ls", "-l"]))
 
+        
+'''
+recvAll(sock, numBytes)
+    PARAM:  sock socket to receive from
+    PARAM:  numBytes number of bytes to receive
+    USE:    This function gets an amount of data from the socket
+'''    
+def recvAll(sock, numBytes):
+    recvBuff = ""
+    tmpBuff = ""
+    
+    while len(recvBuff) < numBytes:
+        
+        tmpBuff =  sock.recv(numBytes)
+        
+        if not tmpBuff:
+            break
+        
+        recvBuff += tmpBuff
+    
+    return recvBuff
 
+'''
+getFile()
+    Purpose: 
+'''
 def getFile(fileName):
-    return
+    # create ephemeral port and send the port number to the client
+    dataSocket = ephemeral()
+    
+    # Receive the first 10 bytes indicating the
+    # size of the file
+    fileSizeBuff = recvAll(dataSocket, 10)
+        
+    # Get the file size
+    fileSize = int(fileSizeBuff)
+    
+    # Get the file data
+    fileData = recvAll(dataSocket, fileSize)
+    
+    # Write to file
+    fileObj = open(fileName, "w")
+    fileObj.write(fileData);
+    
+    fileObj.close()
+    dataSocket.close()
+    return fileSize 
 
 '''
 ephemeral()
     Purpose: Sets up temporary port for data transfer use
 '''
 def ephemeral():
+    
+    #create the ephemeral port 
     dataSocket = socket(AF_INET,SOCK_STREAM)
     dataSocket.bind(('',0))
+    
+    dataPortNumber = dataSocketgetsockname()[1]
+
+    #Send the port number to the client over control connection
+    bytesSent = 0
+    while bytesSent != 2:
+        # keeps sending data until it has all been sent
+        bytesSent += clientSocket.send(dataPortNumber[bytesSent:])
+    
     return dataSocket
 
 
@@ -64,7 +119,43 @@ putFile(fileName)
     PARAM:  name of file
 '''
 def putFile(fileName):
-    return
+    # create ephemeral port and send the port number to the client
+    dataSocket = ephemeral()
+    
+    # Get the file object and stuff
+    fileObj = open(fileName, "r")
+    fileData = None
+    bytesSent = 0
+    
+    while True:
+        
+        # Read 65536 bytes of data
+        fileData = fileObj.read(65536)
+        
+        # Make sure we did not hit EOF
+        if fileData:
+                
+            # convert data to string
+            dataSizeStr = str(len(fileData))
+            
+            # Prepend 0's to the size string
+            # until the size is 10 bytes
+            while len(dataSizeStr) < 10:
+                dataSizeStr = "0" + dataSizeStr
+    
+            # Prepend the size string to the data
+            fileData = dataSizeStr + fileData    
+            
+            # Send the data
+            while len(fileData) > bytesSent:
+                bytesSent += dataSocket.send(fileData[bytesSent:])
+        
+        else:
+            break
+            
+    fileObj.close()
+    dataSocket.close()
+    return bytesSent
 
 #control Connection
 serverSocket = initializeSocket()
