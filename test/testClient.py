@@ -43,7 +43,7 @@ uploadToServer(fileName)
 '''
 def uploadToServer(fileName):
     # We need to create a separate data connection
-    ephemeralPort = int(recvAll(clientSocket, 2));
+    ephemeralPort = int(recvAll(clientSocket, 10));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
 
@@ -90,7 +90,7 @@ downloadFromServer(fileName)
 '''
 def downloadFromServer(fileName):
     # We need to create a separate data connection
-    ephemeralPort = int(recvAll(clientSocket, 2));
+    ephemeralPort = int(recvAll(clientSocket, 10));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
 
@@ -122,7 +122,7 @@ def receiveServerLsOutput():
     # We need to create a separate data connection
     # The ls command sent to the server should send the client the eph port
     # in order to get the output from the dataSocket
-    ephemeralPort = int(recvAll(clientSocket, 2));
+    ephemeralPort = int(recvAll(clientSocket, 10));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
 
@@ -186,6 +186,7 @@ def cmdsConfirmation(clientSocket):
                 fileData = recvAll(dataSocket, fileSize)
 
                 # Write to file
+                fileName = cmds[1]
                 fileObj = open(fileName, "w")
                 fileObj.write(fileData);
 
