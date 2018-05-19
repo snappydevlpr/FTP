@@ -26,7 +26,7 @@ commands(cmds)
     USE:    This function takes in user commands and
             decides which functions to call based on the command
 '''
-def commands(cmds):
+def commands(cmds,connectionSocket):
     #splits commands into a list
     cmds = cmds.split()
     menu = {"get":1,
@@ -43,76 +43,87 @@ def commands(cmds):
         putFile(cmds[1])
     #if client wants to know files on the server
     elif menu[cmds[0]] == 3:
-        print(subprocess.call(["ls", "-l"]))
+        data = str(subprocess.check_output(["ls", "-l"]))
+        print(len(data))
 
-        
+        # #Python 3.6 requires byte-object so message needs to be encoded
+        # data = data.encode('ASCII')
+        #
+        # #Send the port number to the client over control connection
+        # bytesSent = 0
+        # #makes sure that the bits sent is less than the data message
+        # while bytesSent != len(data):
+        #     # keeps sending data until it has all been sent
+        #     bytesSent += clientSocket.send(data[bytesSent:])
+
+
 '''
 recvAll(sock, numBytes)
     PARAM:  sock socket to receive from
     PARAM:  numBytes number of bytes to receive
     USE:    This function gets an amount of data from the socket
-'''    
+'''
 def recvAll(sock, numBytes):
     recvBuff = ""
     tmpBuff = ""
-    
+
     while len(recvBuff) < numBytes:
-        
+
         tmpBuff =  sock.recv(numBytes)
-        
+
         if not tmpBuff:
             break
-        
+
         recvBuff += tmpBuff
-    
+
     return recvBuff
+
 
 '''
 getFile()
-    Purpose: 
+    Purpose:
 '''
 def getFile(fileName):
     # create ephemeral port and send the port number to the client
     dataSocket = ephemeral()
-    
+
     # Receive the first 10 bytes indicating the
     # size of the file
     fileSizeBuff = recvAll(dataSocket, 10)
-        
+
     # Get the file size
     fileSize = int(fileSizeBuff)
-    
+
     # Get the file data
     fileData = recvAll(dataSocket, fileSize)
-    
+
     # Write to file
     fileObj = open(fileName, "w")
     fileObj.write(fileData);
-    
+
     fileObj.close()
     dataSocket.close()
-    return fileSize 
+    return fileSize
 
 '''
 ephemeral()
     Purpose: Sets up temporary port for data transfer use
 '''
-def ephemeral():
-    
-    #create the ephemeral port 
+def ephemeral(connectionSocket):
+
+    #create the ephemeral port
     dataSocket = socket(AF_INET,SOCK_STREAM)
     dataSocket.bind(('',0))
-    
+
     dataPortNumber = dataSocketgetsockname()[1]
 
     #Send the port number to the client over control connection
     bytesSent = 0
     while bytesSent != 2:
         # keeps sending data until it has all been sent
-        bytesSent += clientSocket.send(dataPortNumber[bytesSent:])
-    
-    return dataSocket
+        bytesSent += connectionSocket.send(dataPortNumber[bytesSent:])
 
+    return dataSocket
 
 '''
 putFile(fileName)
@@ -121,41 +132,44 @@ putFile(fileName)
 def putFile(fileName):
     # create ephemeral port and send the port number to the client
     dataSocket = ephemeral()
-    
+
     # Get the file object and stuff
     fileObj = open(fileName, "r")
     fileData = None
     bytesSent = 0
-    
+
     while True:
-        
+
         # Read 65536 bytes of data
         fileData = fileObj.read(65536)
-        
+
         # Make sure we did not hit EOF
         if fileData:
-                
+
             # convert data to string
             dataSizeStr = str(len(fileData))
-            
+
             # Prepend 0's to the size string
             # until the size is 10 bytes
             while len(dataSizeStr) < 10:
                 dataSizeStr = "0" + dataSizeStr
-    
+
             # Prepend the size string to the data
-            fileData = dataSizeStr + fileData    
-            
+            fileData = dataSizeStr + fileData
+
             # Send the data
             while len(fileData) > bytesSent:
                 bytesSent += dataSocket.send(fileData[bytesSent:])
-        
+
         else:
             break
-            
+
     fileObj.close()
     dataSocket.close()
     return bytesSent
+
+
+
 
 #control Connection
 serverSocket = initializeSocket()
@@ -188,4 +202,4 @@ while 1:
 
             #prints out message
             if data != '':
-                commands(''.join(data))
+                commands(''.join(data),connectionSocket)

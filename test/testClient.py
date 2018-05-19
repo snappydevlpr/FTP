@@ -187,8 +187,8 @@ def cmdsConfirmation():
             if menu[cmds[0]] == 3:
                 # send ls command to server
                 sendCommand(cmds)
-                output = receiveServerLsOutput()
-                print(output)
+                #output = receiveServerLsOutput()
+                #print(output)
 
             #checks if the help was entered
             if menu[cmds[0]] == 4:
