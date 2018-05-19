@@ -1,6 +1,6 @@
 from socket import *
 import subprocess
-
+import sys
 '''
 connectToServer(ip_address, server_port)
     PARAM:  ip_address of the server,
@@ -17,22 +17,22 @@ recvAll(sock, numBytes)
     PARAM:  sock socket to receive from
     PARAM:  numBytes number of bytes to receive
     USE:    This function gets an amount of data from the socket
-'''    
+'''
 def recvAll(sock, numBytes):
     recvBuff = ""
     tmpBuff = ""
-    
+
     while len(recvBuff) < numBytes:
-        
+
         tmpBuff =  sock.recv(numBytes)
-        
+
         if not tmpBuff:
             break
-        
+
         recvBuff += tmpBuff
-    
+
     return recvBuff
-    
+
 '''
 uploadToServer(fileName)
     PARAM:  fileName name of the file to save
@@ -44,42 +44,42 @@ def uploadToServer(fileName):
     ephemeralPort = int(recvAll(clientSocket, 2));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
-    
+
     # Get the file object and stuff
     fileObj = open(fileName, "r")
     fileData = None
     bytesSent = 0
-    
+
     while True:
-        
+
         # Read 65536 bytes of data
         fileData = fileObj.read(65536)
-        
+
         # Make sure we did not hit EOF
         if fileData:
-                
+
             # convert data to string
             dataSizeStr = str(len(fileData))
-            
+
             # Prepend 0's to the size string
             # until the size is 10 bytes
             while len(dataSizeStr) < 10:
                 dataSizeStr = "0" + dataSizeStr
-    
+
             # Prepend the size string to the data
-            fileData = dataSizeStr + fileData    
-            
+            fileData = dataSizeStr + fileData
+
             # Send the data
             while len(fileData) > bytesSent:
                 bytesSent += dataSocket.send(fileData[bytesSent:])
-        
+
         else:
             break
-            
+
     fileObj.close()
     dataSocket.close()
     return bytesSent
-    
+
 '''
 downloadFromServer(fileName)
     PARAM:  fileName name of the file to save
@@ -91,31 +91,31 @@ def downloadFromServer(fileName):
     ephemeralPort = int(recvAll(clientSocket, 2));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
-    
+
     # Receive the first 10 bytes indicating the
     # size of the file
     fileSizeBuff = recvAll(dataSocket, 10)
-        
+
     # Get the file size
     fileSize = int(fileSizeBuff)
-    
+
     # Get the file data
     fileData = recvAll(dataSocket, fileSize)
-    
+
     # Write to file
     fileObj = open(fileName, "w")
     fileObj.write(fileData);
-    
+
     fileObj.close()
     dataSocket.close()
-    return fileSize 
-  
+    return fileSize
+
 '''
 receiveServerLsOutput()
     RETURN: the string output of the server's ls command
     USE:    This function receives the output from the
             server side ls command
-'''    
+'''
 def receiveServerLsOutput():
     # We need to create a separate data connection
     # The ls command sent to the server should send the client the eph port
@@ -123,19 +123,19 @@ def receiveServerLsOutput():
     ephemeralPort = int(recvAll(clientSocket, 2));
     serverName = sys.argv[1]
     dataSocket = connectToServer(serverName, ephemeralPort)
-    
+
     # Receive the first 10 bytes indicating the
     # size of the file
     fileSizeBuff = recvAll(dataSocket, 10)
-        
+
     # Get the file size
     fileSize = int(fileSizeBuff)
-    
+
     # Get the file data
     fileData = recvAll(dataSocket, fileSize)
-    
+
     return str(fileData, 'utf-8')
-  
+
 '''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
@@ -167,39 +167,33 @@ def cmdsConfirmation():
 
         #checks if the command is in the menu
         if cmds[0] in menu.keys():
-
             #checks if the help was entered
             if menu[cmds[0]] == 1:
                 # downloads file from server
-				sendCommand(cmds)
+                sendCommand(cmds)
                 fileName = cmds[1]
                 savedFileSize = downloadFromServer(fileName)
                 print("Downloaded " + fileName + " (" + savedFileSize + " Bytes)")
-                # asks to re-enter command
-                cmds = input("ftp>")
+
             #checks if the help was entered
             if menu[cmds[0]] == 2:
                 # uploads a file to the server
-				sendCommand(cmds)
+                sendCommand(cmds)
                 fileName = cmds[1]
                 uploadedFileSize = uploadToServer(fileName)
                 print("Uploaded " + fileName + " (" + uploadedFileSize + " Bytes)")
-                # asks to re-enter command
-                cmds = input("ftp>")
+
             #checks if the help was entered
             if menu[cmds[0]] == 3:
                 # send ls command to server
                 sendCommand(cmds)
                 output = receiveServerLsOutput()
                 print(output)
-                # asks to re-enter command
-                cmds = input("ftp>")
+
             #checks if the help was entered
             if menu[cmds[0]] == 4:
                 #prints out files on the client
                 print(subprocess.call(["ls", "-l"]))
-                # asks to re-enter command
-                cmds = input("ftp>")
             #checks if exit command was made
             elif menu[cmds[0]] == 5:
                 print("Connection is closing...")
@@ -209,13 +203,11 @@ def cmdsConfirmation():
             elif menu[cmds[0]] == 6:
                 #prints out the help menu
                 print(helpString)
-                # asks to re-enter command
-                cmds = input("ftp>")
 
         #prints help menu
         else:
             print("Incorrect command entered! Enter help for more information.")
-            cmds = input("ftp>")
+        cmds = input("ftp>")
 
 '''
 sendCommand(cmds)
@@ -245,9 +237,7 @@ serverPort = int(sys.argv[2])
 #connects to server
 clientSocket = connectToServer(serverName, serverPort)
 # listen for responses like ephemeral port
-clientSocket.listen(1)
 
 while 1:
     #gets the command entered by the user
     cmdsConfirmation()
-    
