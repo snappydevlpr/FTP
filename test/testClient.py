@@ -173,8 +173,25 @@ def cmdsConfirmation(clientSocket):
                 #connects to temp socket
                 dataSocket = socket(AF_INET,SOCK_STREAM)
                 client_IP, client_Port = clientSocket.getsockname()
+                print("Now connected on temp port: ",int(dataPortNumber))
                 dataSocket.connect((client_IP,int(dataPortNumber)))
-                print("connected")
+                # Receive the first 10 bytes indicating the
+                # size of the file
+                fileSizeBuff = recvAll(dataSocket, 10)
+
+                # Get the file size
+                fileSize = int(fileSizeBuff)
+
+                # Get the file data
+                fileData = recvAll(dataSocket, fileSize)
+
+                # Write to file
+                fileObj = open(fileName, "w")
+                fileObj.write(fileData);
+
+                fileObj.close()
+                dataSocket.close()
+                return fileSize
             #checks if the help was entered
             elif menu[cmds[0]] == 2:
                 # uploads a file to the server

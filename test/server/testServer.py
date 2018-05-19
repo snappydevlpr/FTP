@@ -81,40 +81,41 @@ def getFile(fileName,serverSocket):
     dataSocket = ephemeral(serverSocket)
     dataConSocket, addr = dataSocket.accept()
 
-    # # Get the file object and stuff
-    # fileObj = open(fileName, "r")
-    # fileData = None
-    # bytesSent = 0
-    #
-    # while True:
-    #
-    #     # Read 65536 bytes of data
-    #     fileData = fileObj.read(65536)
-    #
-    #     # Make sure we did not hit EOF
-    #     if fileData:
-    #
-    #         # convert data to string
-    #         dataSizeStr = str(len(fileData))
-    #
-    #         # Prepend 0's to the size string
-    #         # until the size is 10 bytes
-    #         while len(dataSizeStr) < 10:
-    #             dataSizeStr = "0" + dataSizeStr
-    #
-    #         # Prepend the size string to the data
-    #         fileData = dataSizeStr + fileData
-    #
-    #         # Send the data
-    #         while len(fileData) > bytesSent:
-    #             bytesSent += dataSocket.send(fileData[bytesSent:])
-    #
-    #     else:
-    #         break
-    #
-    # fileObj.close()
-    # dataSocket.close()
-    # return bytesSent
+    # Get the file object and stuff
+    fileObj = open(fileName, "r")
+    fileData = None
+    bytesSent = 0
+
+    while True:
+
+        # Read 65536 bytes of data
+        fileData = fileObj.read(65536)
+
+        # Make sure we did not hit EOF
+        if fileData:
+
+            # convert data to string
+            dataSizeStr = str(len(fileData))
+
+            # Prepend 0's to the size string
+            # until the size is 10 bytes
+            while len(dataSizeStr) < 10:
+                dataSizeStr = "0" + dataSizeStr
+
+            # Prepend the size string to the data
+            fileData = dataSizeStr + fileData
+            #Python 3.6 requires byte-object so message needs to be encoded
+            fileData = fileData.encode('ASCII')
+            # Send the data
+            while len(fileData) > bytesSent:
+                bytesSent += dataConSocket.send(fileData[bytesSent:])
+
+        else:
+            break
+
+    fileObj.close()
+    dataSocket.close()
+    return bytesSent
 
 
 '''
