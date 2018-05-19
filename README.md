@@ -18,11 +18,11 @@ In the other window, type python3 testServer.py <port number>
 
 ## Commands
 ```
-ftp>  get <filename> <br/>
-ftp>  put <filename> <br/>
-ftp>  ls <br/>
-ftp>  lls <br/>
-ftp>  quit <br/>
+ftp>  get <filename>
+ftp>  put <filename> 
+ftp>  ls 
+ftp>  lls 
+ftp>  quit
 ```
 
 ## Note: Extra credit was NOT implemented.
