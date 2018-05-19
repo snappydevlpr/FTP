@@ -17,7 +17,7 @@ In one window, type python3 testClient.py <hostname> <port number> <br/>
 In the other window, type python3 testServer.py <port number>
 
 ## Commands
-ftp>  get '<filename>' <br/>
+ftp>  get `<filename>` <br/>
 ftp>  put <filename> <br/>
 ftp>  ls <br/>
 ftp>  lls <br/>
