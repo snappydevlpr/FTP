@@ -171,7 +171,7 @@ def cmdsConfirmation():
             #checks if the help was entered
             if menu[cmds[0]] == 1:
                 # downloads file from server
-				sendCommand(cmds)
+                sendCommand(cmds)
                 fileName = cmds[1]
                 savedFileSize = downloadFromServer(fileName)
                 print("Downloaded " + fileName + " (" + savedFileSize + " Bytes)")
@@ -180,7 +180,7 @@ def cmdsConfirmation():
             #checks if the help was entered
             if menu[cmds[0]] == 2:
                 # uploads a file to the server
-				sendCommand(cmds)
+                sendCommand(cmds)
                 fileName = cmds[1]
                 uploadedFileSize = uploadToServer(fileName)
                 print("Uploaded " + fileName + " (" + uploadedFileSize + " Bytes)")
