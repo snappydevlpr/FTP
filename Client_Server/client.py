@@ -94,13 +94,14 @@ def cmdsConfirmation(clientSocket):
                 sendCommand(clientSocket,cmds)
                 #receives the port number
                 dataPortNumber = recvAll(clientSocket,10)
+
                 #connects to temp socket
                 dataSocket = socket(AF_INET,SOCK_STREAM)
                 client_IP, client_Port = clientSocket.getsockname()
                 print("Now connected on temp port: ",int(dataPortNumber))
                 dataSocket.connect((client_IP,int(dataPortNumber)))
-                # Receive the first 10 bytes indicating the
-                # size of the file
+
+                # Receive the first 10 bytes indicating the size of the file
                 fileSizeBuff = recvAll(dataSocket, 10)
 
                 # Get the file size
