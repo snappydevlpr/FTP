@@ -147,7 +147,6 @@ def cmdsConfirmation(clientSocket):
                             fileData = fileData.encode('ASCII')
 
                             while len(fileData) > bytesSent:
-                                print("Sent " + str(bytesSent) + " bytes")
                                 bytesSent += dataSocket.send(fileData[bytesSent:])
                     else:
                         break
@@ -155,7 +154,7 @@ def cmdsConfirmation(clientSocket):
                 file.close()
                 dataSocket.close()
                 print("Temp port now closed")
-                print("file transferred")
+                print("file transferred\n")
             #checks if the help was entered
             elif menu[cmds[0]] == 3:
                 # send ls command to server
@@ -167,14 +166,14 @@ def cmdsConfirmation(clientSocket):
             #checks if the help was entered
             elif menu[cmds[0]] == 4:
                 #prints out files on the client
-                print(str(subprocess.check_output(["ls", "-l"]), 'utf-8'))
+                print('\n'+str(subprocess.check_output(["ls", "-l"]), 'utf-8'))
 
             #checks if exit command was made
             elif menu[cmds[0]] == 5:
                 print("Connection is closing...")
                 #closes socket after sending all data
                 clientSocket.close()
-
+                return 0
 
         #prints help menu
         else:
@@ -206,4 +205,5 @@ clientSocket = connectToServer(serverName, serverPort)
 
 while 1:
     #gets the command entered by the user
-    cmdsConfirmation(clientSocket)
+    if cmdsConfirmation(clientSocket) == 0:
+        break
