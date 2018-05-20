@@ -25,23 +25,22 @@ ephemeral()
     Purpose: Sets up temporary port for data transfer use
 '''
 def ephemeral(connectionSocket):
-    #create the ephemeral port
-
+    #create the ephemeral port and begins listening
     dataSocket = socket(AF_INET,SOCK_STREAM)
     client_IP, client_Port = connectionSocket.getsockname()
     dataSocket.bind((client_IP,0))
-    #socket starts listening
     dataSocket.listen(2)
-    #accepts incoming client
+
+    #gets the port number and changes it to length of 10
     dataPortNumber = str(dataSocket.getsockname()[1])
-    # makes the port length 10
     while len(dataPortNumber) < 10:
         dataPortNumber = '0' + dataPortNumber
 
+    #encodes the port number to be sent
     dataPortNumber = dataPortNumber.encode('ASCII')
-    #Send the port number to the client over control connection
-    bytesSent = 0
 
+    #sends port number over control connection
+    bytesSent = 0
     while bytesSent != 10:
         # keeps sending data until it has all been sent
         bytesSent += connectionSocket.send(dataPortNumber[bytesSent:])
@@ -58,16 +57,14 @@ def recvAll(sock, numBytes):
     recvBuff = ""
     tmpBuff = ""
 
+    #receives the amount of bytes given
     while len(recvBuff) < numBytes:
-
         tmpBuff =  sock.recv(numBytes)
-
         if not tmpBuff:
             break
         #decodes the message the client sent
         temp = tmpBuff.decode('ASCII')
         recvBuff += temp
-
     return recvBuff
 
 '''
@@ -238,5 +235,4 @@ while 1:
             #prints out message
             if data != '':
                 commands(data,connectionSocket)
-
             data = ''
