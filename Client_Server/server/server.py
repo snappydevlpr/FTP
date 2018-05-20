@@ -1,7 +1,6 @@
 from socket import *
 import subprocess
 import sys
-import os
 
 '''
 initializeSocket()
