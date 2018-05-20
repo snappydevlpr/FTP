@@ -1,7 +1,6 @@
 from socket import *
 import subprocess
 import sys
-from time import sleep
 
 '''
 connectToServer(ip_address, server_port)
