@@ -1,6 +1,7 @@
 from socket import *
 import subprocess
 import sys
+import os
 
 '''
 initializeSocket()
@@ -72,6 +73,7 @@ getFile()
     Purpose:Sends file to the client
 '''
 def getFile(fileName,serverSocket):
+
     # create ephemeral port and send the port number to the client
     dataSocket = ephemeral(serverSocket)
     dataConSocket, addr = dataSocket.accept()
@@ -167,41 +169,41 @@ def commands(cmds,serverSocket):
     cmds = cmds.split(' ')
     menu = {"get":1,"put":2,"ls":3,"lls":4,"quit":5}
     if cmds[0] in menu.keys():
-        print("Success")
-    #checks if it is a get file if so run get file
-    if menu[cmds[0]] == 1:
-        print(cmds[1])
-        getFile(cmds[1],serverSocket)
-    #if the server is receiving a file run putFile
-    elif menu[cmds[0]] == 2:
-        putFile(cmds[1],serverSocket)
-    #if client wants to know files on the server
-    elif menu[cmds[0]] == 3:
-        #gets the ls command info
-        data = str(subprocess.check_output(["ls", "-l"]), 'utf-8')
-        dataSize = str(len(data))
-        while len(dataSize) < 10:
-            dataSize = '0' + dataSize
+        #checks if it is a get file if so run get file
+        if menu[cmds[0]] == 1:
+            print(cmds[1])
+            getFile(cmds[1],serverSocket)
+        #if the server is receiving a file run putFile
+        elif menu[cmds[0]] == 2:
+            putFile(cmds[1],serverSocket)
+        #if client wants to know files on the server
+        elif menu[cmds[0]] == 3:
+            #gets the ls command info
+            data = str(subprocess.check_output(["ls", "-l"]), 'utf-8')
+            dataSize = str(len(data))
+            while len(dataSize) < 10:
+                dataSize = '0' + dataSize
 
-        #Python 3.6 requires byte-object so message needs to be encoded
-        dataSize = dataSize.encode('ASCII')
-        #number of bits sent
-        bytesSent = 0
-        #makes sure that the bits sent is less than the data message
-        while bytesSent != len(dataSize):
-            # keeps sending data until it has all been sent
-            bytesSent += serverSocket.send(dataSize[bytesSent:])
+            #Python 3.6 requires byte-object so message needs to be encoded
+            dataSize = dataSize.encode('ASCII')
+            #number of bits sent
+            bytesSent = 0
+            #makes sure that the bits sent is less than the data message
+            while bytesSent != len(dataSize):
+                # keeps sending data until it has all been sent
+                bytesSent += serverSocket.send(dataSize[bytesSent:])
 
-        recvAll(serverSocket,1)
+            recvAll(serverSocket,1)
 
-        #Python 3.6 requires byte-object so message needs to be encoded
-        data = data.encode('ASCII')
-        #number of bits sent
-        bytesSent = 0
-        #makes sure that the bits sent is less than the data message
-        while bytesSent != len(data):
-            # keeps sending data until it has all been sent
-            bytesSent += serverSocket.send(data[bytesSent:])
+            #Python 3.6 requires byte-object so message needs to be encoded
+            data = data.encode('ASCII')
+            #number of bits sent
+            bytesSent = 0
+            #makes sure that the bits sent is less than the data message
+            while bytesSent != len(data):
+                # keeps sending data until it has all been sent
+                bytesSent += serverSocket.send(data[bytesSent:])
+            print("Success")
 
 #control Connection
 serverSocket = initializeSocket()

@@ -103,7 +103,6 @@ def cmdsConfirmation(clientSocket):
 
                 # Receive the first 10 bytes indicating the size of the file
                 fileSizeBuff = recvAll(dataSocket, 10)
-
                 # Get the file size
                 fileSize = int(fileSizeBuff)
 
