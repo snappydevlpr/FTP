@@ -139,6 +139,7 @@ def putFile(fileName, serverSocket):
 
     fileObj.close()
     dataSocket.close()
+    print("Success")
     return fileSize
 
 '''
@@ -170,7 +171,6 @@ def commands(cmds,serverSocket):
     if cmds[0] in menu.keys():
         #checks if it is a get file if so run get file
         if menu[cmds[0]] == 1:
-            print(cmds[1])
             getFile(cmds[1],serverSocket)
         #if the server is receiving a file run putFile
         elif menu[cmds[0]] == 2:
@@ -192,7 +192,6 @@ def commands(cmds,serverSocket):
                 # keeps sending data until it has all been sent
                 bytesSent += serverSocket.send(dataSize[bytesSent:])
 
-            recvAll(serverSocket,1)
 
             #Python 3.6 requires byte-object so message needs to be encoded
             data = data.encode('ASCII')
