@@ -5,6 +5,7 @@ import sys
 '''
 initializeSocket()
     USE:    This function initializes the socket connection
+    returns: the new server socket
 '''
 def initializeSocket():
     #opens the socket initializer for TCP
@@ -23,6 +24,7 @@ def initializeSocket():
 '''
 ephemeral()
     Purpose: Sets up temporary port for data transfer use
+    Returns: the port number of the temp port
 '''
 def ephemeral(connectionSocket):
     #create the ephemeral port and begins listening
@@ -54,12 +56,13 @@ recvAll(sock, numBytes)
     USE:    This function gets an amount of data from the socket
 '''
 def recvAll(sock, numBytes):
-    recvBuff = ""
+    recvBuff= ""
     tmpBuff = ""
 
     #receives the amount of bytes given
     while len(recvBuff) < numBytes:
         tmpBuff =  sock.recv(numBytes)
+        #if there is nothing left to recieve break out of the loop
         if not tmpBuff:
             break
         #decodes the message the client sent
@@ -72,27 +75,21 @@ getFile()
     Purpose:Sends file to the client
 '''
 def getFile(fileName,serverSocket):
-
     # create ephemeral port and send the port number to the client
     dataSocket = ephemeral(serverSocket)
     dataConSocket, addr = dataSocket.accept()
-
     # Get the file object and stuff
     fileObj = open(fileName, "r")
     fileData = None
     bytesSent = 0
 
     while True:
-
-        # Read 65536 bytes of data
-        fileData = fileObj.read(65536)
-
+        # Reads all contents of data
+        fileData = fileObj.read()
         # Make sure we did not hit EOF
         if fileData:
-
             # convert data to string
             dataSizeStr = str(len(fileData))
-
             # Prepend 0's to the size string
             # until the size is 10 bytes
             while len(dataSizeStr) < 10:
@@ -143,16 +140,14 @@ def putFile(fileName, serverSocket):
     return fileSize
 
 '''
-sendCommand(cmds)
+sendInfo(cmds)
     USE:    This function sends a given command message to the server
 '''
-def sendCommand(sock, data):
+def sendInfo(sock, data):
     #Python 3.6 requires byte-object so message needs to be encoded
     data = data.encode('ASCII')
-
     #number of bits sent
     bytesSent = 0
-
     #makes sure that the bits sent is less than the data message
     while bytesSent != len(data):
         # keeps sending data until it has all been sent
@@ -182,7 +177,6 @@ def commands(cmds,serverSocket):
             dataSize = str(len(data))
             while len(dataSize) < 10:
                 dataSize = '0' + dataSize
-
             #Python 3.6 requires byte-object so message needs to be encoded
             dataSize = dataSize.encode('ASCII')
             #number of bits sent
@@ -191,8 +185,6 @@ def commands(cmds,serverSocket):
             while bytesSent != len(dataSize):
                 # keeps sending data until it has all been sent
                 bytesSent += serverSocket.send(dataSize[bytesSent:])
-
-
             #Python 3.6 requires byte-object so message needs to be encoded
             data = data.encode('ASCII')
             #number of bits sent
@@ -215,8 +207,8 @@ print("Connected to client port:" + str(client_Port))
 #continue forever
 while 1:
         # initializer the temporary buff
-        tempBuff = ""
-        data = ""
+        tempBuff = ''
+        data = ''
 
         #gets data of length 40
         while len(data) != 40:

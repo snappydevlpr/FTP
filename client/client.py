@@ -62,6 +62,86 @@ def receiveServerLsOutput():
     return str(fileData, 'utf-8')
 
 '''
+getCommand(clientSocket)
+    PARAM:  clientSocket to send the command to server
+    USE:    This function takes initiates and completes the get command
+'''
+def getCommand(cmds, clientSocket):
+        # downloads file from server
+        cmds = ' '.join(cmds)
+        sendCommand(clientSocket,cmds)
+        #receives the port number
+        dataPortNumber = recvAll(clientSocket,10)
+
+        #connects to temp socket
+        dataSocket = socket(AF_INET,SOCK_STREAM)
+        client_IP, client_Port = clientSocket.getsockname()
+        print("\nNow connected on temp port: ",int(dataPortNumber))
+        dataSocket.connect((client_IP,int(dataPortNumber)))
+
+        # Receive the first 10 bytes indicating the size of the file
+        fileSizeBuff = recvAll(dataSocket, 10)
+        # Get the file size
+        fileSize = int(fileSizeBuff)
+        print("Receiving " + fileSizeBuff + " bytes")
+        # Get the file data
+        fileData = recvAll(dataSocket, fileSize)
+
+        # Write to file
+        fileName = cmds.split(' ')[1]
+        fileObj = open(fileName, "w")
+        fileObj.write(fileData);
+
+        fileObj.close()
+        dataSocket.close()
+        print("Temp port now closed")
+        print("file received\n")
+
+
+'''
+putCommand(clientSocket)
+    PARAM:  clientSocket to send the command to server
+    USE:    This function takes initiates and completes the put command
+'''
+def putCommand(cmds,clientSocket):
+    # Send command to server
+    cmds = ' '.join(cmds)
+    sendCommand(clientSocket,cmds)
+
+    # Create temporary dataSocket
+    dataPortNumber = recvAll(clientSocket,10)
+    dataSocket = socket(AF_INET,SOCK_STREAM)
+    client_IP, client_Port = clientSocket.getsockname()
+    print("\nNow connected on temp port: ",int(dataPortNumber))
+    dataSocket.connect((client_IP,int(dataPortNumber)))
+
+    # Send file to server
+    fileName = cmds.split(' ')[1]
+    file = open(fileName, "r")
+    fileData = None
+    bytesSent = 0
+
+    while True:
+        fileData = file.read()
+        if fileData:
+                dataSize = str(len(fileData))
+                while len(dataSize) < 10:
+                    dataSize = "0" + dataSize
+
+                fileData = dataSize + fileData
+                fileData = fileData.encode('ASCII')
+
+                while len(fileData) > bytesSent:
+                    bytesSent += dataSocket.send(fileData[bytesSent:])
+        else:
+            break
+
+    file.close()
+    dataSocket.close()
+    print("Temp port now closed")
+    print("file transferred\n")
+
+'''
 cmdsConfirmation()
     USE:    This function error checks for appropriate commands are entered by the user
 '''
@@ -88,73 +168,10 @@ def cmdsConfirmation(clientSocket):
         if cmds[0] in menu.keys():
             #checks if the help was entered
             if menu[cmds[0]] == 1:
-                # downloads file from server
-                cmds = ' '.join(cmds)
-                sendCommand(clientSocket,cmds)
-                #receives the port number
-                dataPortNumber = recvAll(clientSocket,10)
-
-                #connects to temp socket
-                dataSocket = socket(AF_INET,SOCK_STREAM)
-                client_IP, client_Port = clientSocket.getsockname()
-                print("\nNow connected on temp port: ",int(dataPortNumber))
-                dataSocket.connect((client_IP,int(dataPortNumber)))
-
-                # Receive the first 10 bytes indicating the size of the file
-                fileSizeBuff = recvAll(dataSocket, 10)
-                # Get the file size
-                fileSize = int(fileSizeBuff)
-                print("Receiving " + fileSizeBuff + " bytes")
-                # Get the file data
-                fileData = recvAll(dataSocket, fileSize)
-
-                # Write to file
-                fileName = cmds.split(' ')[1]
-                fileObj = open(fileName, "w")
-                fileObj.write(fileData);
-
-                fileObj.close()
-                dataSocket.close()
-                print("Temp port now closed")
-                print("file received\n")
+                getCommand(cmds,clientSocket)
             # uploads a file to the server
             elif menu[cmds[0]] == 2:
-                # Send command to server
-                cmds = ' '.join(cmds)
-                sendCommand(clientSocket,cmds)
-
-                # Create temporary dataSocket
-                dataPortNumber = recvAll(clientSocket,10)
-                dataSocket = socket(AF_INET,SOCK_STREAM)
-                client_IP, client_Port = clientSocket.getsockname()
-                print("\nNow connected on temp port: ",int(dataPortNumber))
-                dataSocket.connect((client_IP,int(dataPortNumber)))
-
-                # Send file to server
-                fileName = cmds.split(' ')[1]
-                file = open(fileName, "r")
-                fileData = None
-                bytesSent = 0
-
-                while True:
-                    fileData = file.read(65536)
-                    if fileData:
-                            dataSize = str(len(fileData))
-                            while len(dataSize) < 10:
-                                dataSize = "0" + dataSize
-
-                            fileData = dataSize + fileData
-                            fileData = fileData.encode('ASCII')
-
-                            while len(fileData) > bytesSent:
-                                bytesSent += dataSocket.send(fileData[bytesSent:])
-                    else:
-                        break
-
-                file.close()
-                dataSocket.close()
-                print("Temp port now closed")
-                print("file transferred\n")
+                putCommand(cmds,clientSocket)
             #checks if the help was entered
             elif menu[cmds[0]] == 3:
                 # send ls command to server
