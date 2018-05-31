@@ -195,6 +195,11 @@ def commands(cmds,serverSocket):
                 bytesSent += serverSocket.send(data[bytesSent:])
             print("Success")
 
+
+def accountVerification():
+    
+
+
 #control Connection
 serverSocket = initializeSocket()
 #accepts client connection

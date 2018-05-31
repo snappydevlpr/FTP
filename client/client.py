@@ -211,6 +211,19 @@ def sendCommand(sock, data):
         # keeps sending data until it has all been sent
         bytesSent += sock.send(data[bytesSent:])
 
+'''
+
+'''
+def login(clientSocket):
+    #now connected to the server menu
+    username = input("Username>")
+    if len(username) > 40:
+        print("username error")
+    password = input("password>")
+
+    sendCommand(clientSocket, username)
+    sendCommand(clientSocket, password)
+
 #desired server and port number
 #serverName = "192.168.1.39"
 #serverPort = 12000
@@ -219,6 +232,7 @@ serverPort = int(sys.argv[2])
 
 #connects to server
 clientSocket = connectToServer(serverName, serverPort)
+
 
 while 1:
     #gets the command entered by the user
